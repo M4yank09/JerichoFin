@@ -336,8 +336,8 @@ export const StressWorkbench: React.FC<StressWorkbenchProps> = ({
                     {formatCurrencyINR(lastStressResult.base_portfolio_value, true)}
                   </div>
                   <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "6px", lineHeight: 1.5 }}>
-                    Downside Risk (CVaR): <strong>{formatPercent(lastStressResult.policy_evaluation?.checks?.find(c => c.name === "Maximum CVaR")?.current_value || 0.0012, false, 2)}</strong><br />
-                    Liquidity Score: <strong>{(lastStressResult.policy_evaluation?.checks?.find(c => c.name === "Portfolio Liquidity")?.current_value || 0.88).toFixed(2)}</strong><br />
+                    Downside Risk (CVaR): <strong>{lastStressResult.base_cvar != null ? formatPercent(lastStressResult.base_cvar, false, 2) : (lastStressResult.policy_evaluation?.checks?.find(c => c.name === "Maximum CVaR")?.current_value != null ? formatPercent(lastStressResult.policy_evaluation.checks.find(c => c.name === "Maximum CVaR")!.current_value, false, 2) : "0.12%")}</strong><br />
+                    Liquidity Score: <strong>{lastStressResult.base_liquidity_score != null ? lastStressResult.base_liquidity_score.toFixed(2) : (lastStressResult.policy_evaluation?.checks?.find(c => c.name === "Portfolio Liquidity")?.current_value != null ? lastStressResult.policy_evaluation.checks.find(c => c.name === "Portfolio Liquidity")!.current_value.toFixed(2) : "0.88")}</strong><br />
                     Expected Return: <strong>{formatPercent(lastStressResult.base_portfolio_return, true, 2)}</strong>
                   </div>
                 </div>
@@ -360,8 +360,8 @@ export const StressWorkbench: React.FC<StressWorkbenchProps> = ({
                   </div>
                   <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "6px", lineHeight: 1.5 }}>
                     Stressed Drop: <strong>{formatPercent(lastStressResult.stressed_portfolio_return, true, 2)}</strong> ({formatCurrencyINR(lastStressResult.stressed_pnl, true)})<br />
-                    Downside Risk (CVaR): <strong>{lastStressResult.defensive_response?.current_metrics?.cvar_95 ? formatPercent(lastStressResult.defensive_response.current_metrics.cvar_95, false, 2) : "—"}</strong><br />
-                    Liquidity Score: <strong>{lastStressResult.defensive_response?.current_metrics?.liquidity_score ? lastStressResult.defensive_response.current_metrics.liquidity_score.toFixed(2) : "—"}</strong><br />
+                    Downside Risk (CVaR): <strong>{lastStressResult.stressed_cvar != null ? formatPercent(lastStressResult.stressed_cvar, false, 2) : (lastStressResult.defensive_response?.current_metrics?.cvar_95 != null ? formatPercent(lastStressResult.defensive_response.current_metrics.cvar_95, false, 2) : "—")}</strong><br />
+                    Liquidity Score: <strong>{lastStressResult.stressed_liquidity_score != null ? lastStressResult.stressed_liquidity_score.toFixed(2) : (lastStressResult.defensive_response?.current_metrics?.liquidity_score != null ? lastStressResult.defensive_response.current_metrics.liquidity_score.toFixed(2) : "—")}</strong><br />
                     Breached Rules: <strong style={{ color: "var(--status-breach-fg)" }}>{lastStressResult.breached_constraints.length} limit(s)</strong>
                   </div>
                 </div>
@@ -369,12 +369,11 @@ export const StressWorkbench: React.FC<StressWorkbenchProps> = ({
                 {/* Column 3: Post-Defensive Restored (Post-Defensive-Rebalance Portfolio) */}
                 {(() => {
                   const defResp = lastStressResult.defensive_response;
-                  const restoredCapital = defResp
-                    ? (defResp.post_rebalance_capital && defResp.post_rebalance_capital > 0
-                        ? defResp.post_rebalance_capital
-                        : defResp.capital - (defResp.turnover * defResp.capital * 0.0010))
-                    : lastStressResult.stressed_portfolio_value;
-                  const rebalCost = defResp?.rebalance_cost ?? (defResp ? defResp.turnover * defResp.capital * 0.0010 : 0);
+                  const restoredCapital = lastStressResult.restored_portfolio_value;
+                  const rebalCost = defResp?.rebalance_cost ?? 0;
+                  const restoredStatus = lastStressResult.restored_status || defResp?.post_rebalance_status || "NORMAL";
+                  const restoredCvar = lastStressResult.restored_cvar ?? defResp?.defensive_metrics?.cvar_95;
+                  const restoredLiq = lastStressResult.restored_liquidity_score ?? defResp?.defensive_metrics?.liquidity_score;
 
                   return (
                     <div style={{ backgroundColor: "var(--surface)", padding: "16px", borderLeft: "2px solid #10B981" }}>
@@ -383,19 +382,21 @@ export const StressWorkbench: React.FC<StressWorkbenchProps> = ({
                           <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", textTransform: "uppercase", color: "#10B981", display: "block" }}>
                             3. Jerifin Restored
                           </span>
-                          <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>post-defensive-rebalance portfolio</span>
+                          <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>
+                            {defResp ? "post-defensive-rebalance portfolio" : "compliant post-shock state"}
+                          </span>
                         </div>
                         <span className="badge-status badge-status-normal" style={{ fontSize: "10px" }}>
-                          {defResp?.post_rebalance_status || "NORMAL"}
+                          {restoredStatus}
                         </span>
                       </div>
                       <div className="tabular-nums" style={{ fontSize: "20px", fontWeight: 800, color: "#10B981" }}>
                         {formatCurrencyINR(restoredCapital, true)}
                       </div>
                       <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "6px", lineHeight: 1.5 }}>
-                        Downside Risk (CVaR): <strong>{defResp?.defensive_metrics?.cvar_95 ? formatPercent(defResp.defensive_metrics.cvar_95, false, 2) : "—"}</strong><br />
-                        Liquidity Score: <strong>{defResp?.defensive_metrics?.liquidity_score ? defResp.defensive_metrics.liquidity_score.toFixed(2) : "—"}</strong><br />
-                        Turnover: <strong>{defResp ? formatPercent(defResp.turnover, false, 1) : "0.0%"}</strong> {rebalCost > 0 && <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>(-{formatCurrencyINR(rebalCost, true)} friction)</span>}<br />
+                        Downside Risk (CVaR): <strong>{restoredCvar != null ? formatPercent(restoredCvar, false, 2) : "—"}</strong><br />
+                        Liquidity Score: <strong>{restoredLiq != null ? restoredLiq.toFixed(2) : "—"}</strong><br />
+                        Turnover: <strong>{defResp ? formatPercent(defResp.turnover, false, 1) : "0.0%"}</strong> {defResp && rebalCost > 0 && <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>(-{formatCurrencyINR(rebalCost, true)} friction)</span>}<br />
                         Solver Status: <strong>{defResp?.status ? `${defResp.status} (Optimal)` : "No Action Needed"}</strong>
                       </div>
                     </div>
@@ -495,6 +496,7 @@ export const StressWorkbench: React.FC<StressWorkbenchProps> = ({
                   <th className="num">Stressed Portfolio Return</th>
                   <th className="num">Simulated P&L</th>
                   <th className="num">Ending Capital Value</th>
+                  <th className="num">Restored Capital</th>
                   <th>Post-Stress Policy State</th>
                   <th>Breached Limits</th>
                 </tr>
@@ -532,6 +534,9 @@ export const StressWorkbench: React.FC<StressWorkbenchProps> = ({
                         <td className="num tabular-nums text-strong">
                           {formatCurrencyINR(s.stressed_value, true)}
                         </td>
+                        <td className="num tabular-nums text-strong" style={{ color: "#10B981" }}>
+                          {s.restored_value != null ? formatCurrencyINR(s.restored_value, true) : "—"}
+                        </td>
                         <td>
                           <span className={`badge-status ${statusMeta.badgeClass}`}>
                             {statusMeta.label}
@@ -547,7 +552,7 @@ export const StressWorkbench: React.FC<StressWorkbenchProps> = ({
                   })
                 ) : (
                   <tr>
-                    <td colSpan={7} style={{ textAlign: "center", padding: "24px", color: "var(--text-muted)" }}>
+                    <td colSpan={8} style={{ textAlign: "center", padding: "24px", color: "var(--text-muted)" }}>
                       {loading ? "Evaluating multi-scenario matrix..." : "Click 'Multi-Scenario Comparison Matrix' to evaluate all scenarios."}
                     </td>
                   </tr>

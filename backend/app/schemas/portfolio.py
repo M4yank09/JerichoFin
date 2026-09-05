@@ -249,6 +249,10 @@ class StressTestResult:
     restored_cvar: Optional[float] = None     # Post-restoration 95% CVaR
     restored_liquidity: Optional[float] = None # Post-restoration weighted liquidity
     restored_status: str = "NORMAL"           # Post-restoration policy state
+    base_cvar: Optional[float] = None         # Baseline 95% CVaR
+    base_liquidity: Optional[float] = None    # Baseline weighted liquidity score
+    stressed_cvar: Optional[float] = None     # Stressed 95% CVaR
+    stressed_liquidity: Optional[float] = None # Stressed weighted liquidity score
 
 
 @dataclass
@@ -263,6 +267,7 @@ class ScenarioSummary:
     policy_status: str
     num_breached_policies: int
     breached_policies: List[str]
+    restored_value: Optional[float] = None
 
 
 @dataclass

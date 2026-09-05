@@ -333,8 +333,52 @@ class TestPolicyIntegrationAndDefensiveResponse:
         assert res.restored_portfolio_value < res.stressed_portfolio_value
         assert pytest.approx(res.restored_portfolio_value, rel=1e-5) == res.defensive_response.post_rebalance_capital
         assert res.restored_status == RiskState.NORMAL.value
-        assert res.restored_cvar is not None
-        assert res.restored_liquidity is not None
+        assert res.restored_cvar == res.defensive_response.defensive_metrics["cvar_95"]
+        assert res.restored_liquidity == res.defensive_response.defensive_metrics["liquidity_score"]
+        # Assert base and stressed metrics are explicitly populated on StressTestResult
+        assert res.base_cvar is not None
+        assert res.base_liquidity is not None
+        assert res.stressed_cvar is not None
+        assert res.stressed_liquidity is not None
+
+    def test_no_defensive_response_when_no_breach(self, stress_setup):
+        """Test 12b: Compliant portfolio under shock does NOT trigger defensive rebalance.
+
+        Restored state must strictly equal the actual post-shock state without fabricating a rebalance.
+        """
+        assets, returns_df, engine, policy, _ = stress_setup
+
+        # Safe compliant portfolio (no equity, balanced 25% across 4 liquid assets)
+        safe_weights = {
+            "USD_CASH": 0.25,
+            "US_TBILL_3M": 0.25,
+            "COMM_PAPER_30D": 0.25,
+            "US_CORP_IG": 0.25,
+            "STRAT_YIELD_BUF": 0.0,
+        }
+        sc = get_predefined_scenarios()["EQUITY_CRASH"]
+
+        res = engine.run_stress_test(
+            portfolio_weights=safe_weights,
+            assets=assets,
+            scenario=sc,
+            historical_returns=returns_df,
+            policy=policy,
+            total_capital=10_000_000.0,
+            trigger_defensive_on_breach=True,
+        )
+
+        assert res.policy_status in (RiskState.NORMAL.value, RiskState.WARNING.value)
+        assert res.defensive_response is None
+        # Restored values MUST match stressed values exactly (zero turnover, zero friction)
+        assert res.restored_portfolio_value == res.stressed_portfolio_value
+        assert res.restored_cvar == res.stressed_cvar
+        assert res.restored_liquidity == res.stressed_liquidity
+        assert res.restored_status == res.policy_status
+        assert res.base_cvar is not None
+        assert res.base_liquidity is not None
+        assert res.stressed_cvar is not None
+        assert res.stressed_liquidity is not None
 
     def test_capital_scaling(self, stress_setup):
         """Test 13: Stress testing scales accurately with capital ($10M vs $100M)."""

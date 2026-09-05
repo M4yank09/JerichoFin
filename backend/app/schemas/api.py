@@ -307,6 +307,10 @@ class StressRunResponse(BaseModel):
     restored_cvar: Optional[float] = Field(default=None, description="Post-restoration downside tail risk (95% CVaR)")
     restored_liquidity_score: Optional[float] = Field(default=None, description="Post-restoration portfolio weighted liquidity score")
     restored_status: str = Field(default="NORMAL", description="Post-restoration policy compliance state")
+    base_cvar: Optional[float] = Field(default=None, description="Pre-stress baseline 95% CVaR")
+    base_liquidity_score: Optional[float] = Field(default=None, description="Pre-stress baseline liquidity score")
+    stressed_cvar: Optional[float] = Field(default=None, description="Post-shock 95% CVaR")
+    stressed_liquidity_score: Optional[float] = Field(default=None, description="Post-shock liquidity score")
 
 
 class ScenarioSummaryItem(BaseModel):
@@ -317,6 +321,7 @@ class ScenarioSummaryItem(BaseModel):
     stressed_return: float
     stressed_pnl: float
     stressed_value: float
+    restored_value: Optional[float] = Field(default=None, description="Post-restoration portfolio capital")
     policy_status: str
     num_breached_policies: int
     breached_policies: List[str]

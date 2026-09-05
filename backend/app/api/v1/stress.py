@@ -236,6 +236,7 @@ def compare_stress_scenarios(request: StressCompareRequest) -> StressCompareResp
             policy_status=s.policy_status,
             num_breached_policies=s.num_breached_policies,
             breached_policies=s.breached_policies,
+            restored_value=s.restored_value,
         )
         for s in comp_res.scenarios
     ]

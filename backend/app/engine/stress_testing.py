@@ -337,6 +337,10 @@ class StressTestingEngine:
             restored_cvar=restored_cvar,
             restored_liquidity=restored_liq,
             restored_status=restored_status,
+            base_cvar=baseline_metrics.cvar_95_historical,
+            base_liquidity=baseline_metrics.weighted_liquidity_score,
+            stressed_cvar=stressed_metrics.cvar_95_historical,
+            stressed_liquidity=stressed_metrics.weighted_liquidity_score,
         )
 
     def run_multi_scenario_comparison(
@@ -399,6 +403,7 @@ class StressTestingEngine:
                 policy_status=res.policy_status,
                 num_breached_policies=len(res.breached_constraints),
                 breached_policies=res.breached_constraints,
+                restored_value=res.restored_portfolio_value,
             ))
 
         return MultiScenarioComparison(

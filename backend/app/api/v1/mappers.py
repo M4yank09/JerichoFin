@@ -204,4 +204,8 @@ def stress_result_to_response(
         restored_cvar=res.restored_cvar,
         restored_liquidity_score=res.restored_liquidity,
         restored_status=res.restored_status,
+        base_cvar=res.base_cvar,
+        base_liquidity_score=res.base_liquidity,
+        stressed_cvar=res.stressed_cvar,
+        stressed_liquidity_score=res.stressed_liquidity,
     )

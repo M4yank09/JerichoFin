@@ -350,6 +350,9 @@ def test_stress_compare_endpoint():
     assert data["base_capital"] == 1_000_000_000.0
     assert len(data["scenarios"]) == 5
     assert len(data["detailed_results"]) == 5
+    first_scen = data["scenarios"][0]
+    assert "restored_value" in first_scen
+    assert first_scen["restored_value"] > 0
 
 
 # ==============================================================================
@@ -411,12 +414,24 @@ def test_complete_demo_flow_and_capital_scaling():
     stress_data = stress_resp.json()
     assert stress_data["stressed_pnl"] < 0.0
     assert stress_data["stressed_portfolio_value"] < capital_100_cr
+    assert "restored_portfolio_value" in stress_data
+    assert "base_cvar" in stress_data
+    assert "base_liquidity_score" in stress_data
+    assert "stressed_cvar" in stress_data
+    assert "stressed_liquidity_score" in stress_data
+    assert "restored_cvar" in stress_data
+    assert "restored_liquidity_score" in stress_data
+    assert "restored_status" in stress_data
+    assert stress_data["restored_portfolio_value"] > 0
 
     # 7 & 8: Verify policy status and defensive response if breached
     if stress_data["policy_status"] in ("BREACH", "CRITICAL"):
         assert stress_data["defensive_response"] is not None
         assert stress_data["defensive_response"]["status"] == "SUCCESS"
         assert stress_data["defensive_response"]["post_rebalance_status"] == "NORMAL"
+        assert stress_data["restored_portfolio_value"] < stress_data["stressed_portfolio_value"]
+    else:
+        assert stress_data["restored_portfolio_value"] == stress_data["stressed_portfolio_value"]
 
     # 9: Capital Scaling Invariance Test
     # Scale capital 5x to ₹500 Cr (5,000,000,000)
