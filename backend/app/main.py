@@ -24,14 +24,6 @@ def create_app() -> FastAPI:
         openapi_url="/openapi.json",
     )
 
-    # Configure CORS
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.ALLOWED_ORIGINS,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
 
     # --------------------------------------------------------------------------
     # Global Exception Handlers
@@ -102,6 +94,22 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
+
+cors_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://*.vercel.app",
+    *settings.ALLOWED_ORIGINS,
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=list(dict.fromkeys(cors_origins)),
+    allow_origin_regex=r"https?://.*\.vercel\.app",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 if __name__ == "__main__":
