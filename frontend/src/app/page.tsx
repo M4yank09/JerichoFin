@@ -6,8 +6,10 @@ import { CapitalSelector } from "../components/CapitalSelector";
 import { DefensiveRebalance } from "../components/DefensiveRebalance";
 import { DisclaimerModal } from "../components/DisclaimerModal";
 import { Header } from "../components/Header";
+import { MethodologyPanel } from "../components/MethodologyPanel";
 import { MetricStrip } from "../components/MetricStrip";
 import { OptimizerPanel } from "../components/OptimizerPanel";
+import { OverviewPanel } from "../components/OverviewPanel";
 import { PolicyAuditPanel } from "../components/PolicyAuditPanel";
 import { StressWorkbench } from "../components/StressWorkbench";
 import { api } from "../lib/api";
@@ -15,9 +17,12 @@ import {
   AssetItem,
   CustomScenarioInput,
   DefensiveRebalanceResponse,
+  EarlyWarningResponse,
+  LiquidityOutlookResponse,
   OptimizationConstraintsInput,
   OptimizationResponse,
   PortfolioAnalysisResponse,
+  PortfolioProjectionResponse,
   RiskEvaluationResponse,
   StressCompareResponse,
   StressRunResponse,
@@ -25,18 +30,21 @@ import {
 
 export default function WorkstationPage() {
   // ---------------------------------------------------------------------------
-  // Core Portfolio State
+  // Core Portfolio State (Default: ₹100 Cr / 1,000,000,000 INR)
   // ---------------------------------------------------------------------------
-  // Default Demo Capital: ₹100 Cr (1,000,000,000)
   const [capital, setCapital] = useState<number>(1_000_000_000.0);
   const [assets, setAssets] = useState<AssetItem[]>([]);
   const [weights, setWeights] = useState<Record<string, number>>({});
 
   // ---------------------------------------------------------------------------
-  // Calculation & Engine Output States
+  // Calculation & Forward-Looking Engine Outputs
   // ---------------------------------------------------------------------------
   const [metrics, setMetrics] = useState<PortfolioAnalysisResponse | null>(null);
   const [audit, setAudit] = useState<RiskEvaluationResponse | null>(null);
+  const [earlyWarning, setEarlyWarning] = useState<EarlyWarningResponse | null>(null);
+  const [liquidityOutlook, setLiquidityOutlook] = useState<LiquidityOutlookResponse | null>(null);
+  const [projection, setProjection] = useState<PortfolioProjectionResponse | null>(null);
+
   const [lastOptimization, setLastOptimization] = useState<OptimizationResponse | null>(null);
   const [rebalanceResult, setRebalanceResult] = useState<DefensiveRebalanceResponse | null>(null);
   const [lastStressResult, setLastStressResult] = useState<StressRunResponse | null>(null);
@@ -55,51 +63,56 @@ export default function WorkstationPage() {
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [isDisclaimerOpen, setIsDisclaimerOpen] = useState<boolean>(false);
 
-  // Active Navigation Tab
-  const [activeSection, setActiveSection] = useState<"allocation" | "optimizer" | "governance" | "rebalance" | "stress">("allocation");
+  // Active Navigation Tab (7 Tabs: Overview, Allocation, Optimize, Risk & Alerts, Stress Lab, Rebalance, Methodology)
+  const [activeSection, setActiveSection] = useState<
+    "overview" | "allocation" | "optimizer" | "governance" | "stress" | "rebalance" | "methodology"
+  >("overview");
 
   // ---------------------------------------------------------------------------
-  // 1. Initial Data Fetching
+  // 1. Initial Data Fetching (Indian Institutional Universe)
   // ---------------------------------------------------------------------------
   useEffect(() => {
     let isMounted = true;
     async function init() {
       try {
         setLoading(true);
-        const universe = await api.getAssets();
+        // Fetch curated Indian institutional treasury universe
+        const universe = await api.getAssets("indian");
         if (!isMounted) return;
 
         setAssets(universe.assets);
 
-        // Standard institutional default weights
+        // Standard Indian Institutional baseline weights (100% Healthy Demo State)
         const initialWeights: Record<string, number> = {
-          USD_CASH: 0.20,
-          US_TBILL_3M: 0.35,
-          COMM_PAPER_30D: 0.20,
-          US_CORP_IG: 0.15,
-          STRAT_YIELD_BUF: 0.10,
+          INR_CASH: 0.25,      // 25% Overnight Cash & TREPS (Tier 1)
+          IN_TBILL_91D: 0.25,  // 25% 91-Day T-Bills (Tier 2)
+          IN_CP_90D: 0.15,     // 15% Commercial Paper (Tier 2)
+          IN_CD_3M: 0.10,      // 10% Certificates of Deposit (Tier 2)
+          IN_GSEC_10Y: 0.15,   // 15% 10-Year Benchmark G-Secs (Tier 3)
+          IN_CORP_AAA: 0.05,   // 5% AAA Corporate Bonds (Tier 3)
+          IN_GOLD: 0.05,       // 5% Sovereign Gold (Tier 3)
         };
 
         setWeights(initialWeights);
 
-        // Run baseline analytics
-        const analysis = await api.analyzePortfolio({
-          capital: 1_000_000_000.0,
-          weights: initialWeights,
-        });
-        if (!isMounted) return;
-        setMetrics(analysis);
+        // Fetch core analytics and forward-looking engines in parallel
+        const [analysisRes, riskRes, ewRes, loRes, projRes] = await Promise.allSettled([
+          api.analyzePortfolio({ capital: 1_000_000_000.0, weights: initialWeights }),
+          api.evaluateRisk({ capital: 1_000_000_000.0, weights: initialWeights }),
+          api.evaluateEarlyWarning({ capital: 1_000_000_000.0, weights: initialWeights }),
+          api.evaluateLiquidityOutlook({ capital: 1_000_000_000.0, weights: initialWeights }),
+          api.projectPortfolio({ capital: 1_000_000_000.0, weights: initialWeights, selected_horizon_months: 12 }),
+        ]);
 
-        // Run baseline policy evaluation
-        const riskEval = await api.evaluateRisk({
-          weights: initialWeights,
-          capital: 1_000_000_000.0,
-        });
         if (!isMounted) return;
-        setAudit(riskEval);
+        if (analysisRes.status === "fulfilled") setMetrics(analysisRes.value);
+        if (riskRes.status === "fulfilled") setAudit(riskRes.value);
+        if (ewRes.status === "fulfilled") setEarlyWarning(ewRes.value);
+        if (loRes.status === "fulfilled") setLiquidityOutlook(loRes.value);
+        if (projRes.status === "fulfilled") setProjection(projRes.value);
       } catch (err: unknown) {
         if (!isMounted) return;
-        const msg = err instanceof Error ? err.message : "Failed to load institutional data.";
+        const msg = err instanceof Error ? err.message : "Failed to load institutional treasury data.";
         setGlobalError(msg);
       } finally {
         if (isMounted) setLoading(false);
@@ -117,19 +130,21 @@ export default function WorkstationPage() {
     async (newCapital: number, newWeights: Record<string, number>) => {
       try {
         const sum = Object.values(newWeights).reduce((a, b) => a + b, 0);
-        if (Math.abs(sum - 1.0) > 0.001) return; // Only evaluate valid sum = 1.0
+        if (Math.abs(sum - 1.0) > 0.001) return; // Only evaluate valid weights summing to 100%
 
-        const analysis = await api.analyzePortfolio({
-          capital: newCapital,
-          weights: newWeights,
-        });
-        setMetrics(analysis);
+        const [analysisRes, riskRes, ewRes, loRes, projRes] = await Promise.allSettled([
+          api.analyzePortfolio({ capital: newCapital, weights: newWeights }),
+          api.evaluateRisk({ capital: newCapital, weights: newWeights }),
+          api.evaluateEarlyWarning({ capital: newCapital, weights: newWeights }),
+          api.evaluateLiquidityOutlook({ capital: newCapital, weights: newWeights }),
+          api.projectPortfolio({ capital: newCapital, weights: newWeights, selected_horizon_months: 12 }),
+        ]);
 
-        const riskEval = await api.evaluateRisk({
-          weights: newWeights,
-          capital: newCapital,
-        });
-        setAudit(riskEval);
+        if (analysisRes.status === "fulfilled") setMetrics(analysisRes.value);
+        if (riskRes.status === "fulfilled") setAudit(riskRes.value);
+        if (ewRes.status === "fulfilled") setEarlyWarning(ewRes.value);
+        if (loRes.status === "fulfilled") setLiquidityOutlook(loRes.value);
+        if (projRes.status === "fulfilled") setProjection(projRes.value);
       } catch (err: unknown) {
         console.error("Refresh analysis error:", err);
       }
@@ -160,7 +175,6 @@ export default function WorkstationPage() {
     for (const [sym, w] of Object.entries(weights)) {
       normalized[sym] = parseFloat((w / sum).toFixed(4));
     }
-    // Adjust remainder on first asset
     const newSum = Object.values(normalized).reduce((a, b) => a + b, 0);
     const diff = parseFloat((1.0 - newSum).toFixed(4));
     const firstKey = Object.keys(normalized)[0];
@@ -171,7 +185,7 @@ export default function WorkstationPage() {
   };
 
   // ---------------------------------------------------------------------------
-  // 3. Optimization Action
+  // 3. Optimization Action (CVXPY Solver)
   // ---------------------------------------------------------------------------
   const handleRunOptimization = async (
     constraints: OptimizationConstraintsInput
@@ -182,6 +196,7 @@ export default function WorkstationPage() {
       const res = await api.optimizePortfolio({
         capital,
         constraints,
+        universe: "indian",
       });
       setLastOptimization(res);
       return res;
@@ -197,7 +212,7 @@ export default function WorkstationPage() {
   const handleApplyOptimizedWeights = (optWeights: Record<string, number>) => {
     setWeights(optWeights);
     refreshAnalysis(capital, optWeights);
-    setActiveSection("allocation");
+    setActiveSection("overview");
   };
 
   // ---------------------------------------------------------------------------
@@ -206,11 +221,12 @@ export default function WorkstationPage() {
   const handleRefreshAudit = async () => {
     try {
       setAuditLoading(true);
-      const res = await api.evaluateRisk({
-        weights,
-        capital,
-      });
-      setAudit(res);
+      const [riskRes, ewRes] = await Promise.allSettled([
+        api.evaluateRisk({ weights, capital }),
+        api.evaluateEarlyWarning({ weights, capital }),
+      ]);
+      if (riskRes.status === "fulfilled") setAudit(riskRes.value);
+      if (ewRes.status === "fulfilled") setEarlyWarning(ewRes.value);
     } catch (err: unknown) {
       console.error(err);
     } finally {
@@ -239,7 +255,48 @@ export default function WorkstationPage() {
   const handleApplyDefensiveWeights = (defWeights: Record<string, number>) => {
     setWeights(defWeights);
     refreshAnalysis(capital, defWeights);
-    setActiveSection("allocation");
+    setActiveSection("overview");
+  };
+
+  // Interactive Demo State Simulator (Requirement 14)
+  const handleSimulateState = (type: "warning" | "breach" | "reset") => {
+    if (type === "warning") {
+      const warningWeights: Record<string, number> = {
+        INR_CASH: 0.15,
+        IN_TBILL_91D: 0.32, // In warning band (>29.75%, <35%)
+        IN_CP_90D: 0.15,
+        IN_CD_3M: 0.10,
+        IN_GSEC_10Y: 0.15,
+        IN_CORP_AAA: 0.08,
+        IN_GOLD: 0.05,
+      };
+      setWeights(warningWeights);
+      refreshAnalysis(capital, warningWeights);
+    } else if (type === "breach") {
+      const breachWeights: Record<string, number> = {
+        INR_CASH: 0.05,
+        IN_TBILL_91D: 0.42, // Breaches 35% cap
+        IN_CP_90D: 0.15,
+        IN_CD_3M: 0.10,
+        IN_GSEC_10Y: 0.15,
+        IN_CORP_AAA: 0.08,
+        IN_GOLD: 0.05,
+      };
+      setWeights(breachWeights);
+      refreshAnalysis(capital, breachWeights);
+    } else {
+      const healthyWeights: Record<string, number> = {
+        INR_CASH: 0.25,
+        IN_TBILL_91D: 0.25,
+        IN_CP_90D: 0.15,
+        IN_CD_3M: 0.10,
+        IN_GSEC_10Y: 0.15,
+        IN_CORP_AAA: 0.05,
+        IN_GOLD: 0.05,
+      };
+      setWeights(healthyWeights);
+      refreshAnalysis(capital, healthyWeights);
+    }
   };
 
   // ---------------------------------------------------------------------------
@@ -286,9 +343,10 @@ export default function WorkstationPage() {
   };
 
   // ---------------------------------------------------------------------------
-  // Render
+  // Status Indicators
   // ---------------------------------------------------------------------------
   const isBreached = audit?.overall_status === "BREACH" || audit?.overall_status === "CRITICAL";
+  const hasWarning = audit?.overall_status === "WARNING" || earlyWarning?.overall_status === "WATCH" || earlyWarning?.overall_status === "ELEVATED";
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
@@ -312,54 +370,100 @@ export default function WorkstationPage() {
         {/* Dynamic Capital Selector Bar */}
         <CapitalSelector capital={capital} onCapitalChange={handleCapitalChange} />
 
-        {/* High-Density Metric Summary Strip */}
-        <MetricStrip
-          metrics={metrics}
-          overallStatus={audit?.overall_status || "NORMAL"}
-          loading={loading || auditLoading}
-        />
+        {/* High-Density Metric Summary Strip (for analytical tabs; Overview and Allocation have dedicated authoritative summaries) */}
+        {activeSection !== "overview" && activeSection !== "allocation" && (
+          <MetricStrip
+            metrics={metrics}
+            overallStatus={audit?.overall_status || "NORMAL"}
+            loading={loading || auditLoading}
+          />
+        )}
 
-        {/* Workstation Navigation Tabs */}
+        {/* Workstation Navigation Tabs: 7 Simplified Tabs */}
         <nav className="workstation-tabs" aria-label="Workstation Sections">
+          <button
+            type="button"
+            className={`tab-btn ${activeSection === "overview" ? "active" : ""}`}
+            onClick={() => setActiveSection("overview")}
+          >
+            Overview
+          </button>
           <button
             type="button"
             className={`tab-btn ${activeSection === "allocation" ? "active" : ""}`}
             onClick={() => setActiveSection("allocation")}
           >
-            1. Holdings & Universe
+            Allocation
           </button>
           <button
             type="button"
             className={`tab-btn ${activeSection === "optimizer" ? "active" : ""}`}
             onClick={() => setActiveSection("optimizer")}
           >
-            2. CVXPY Optimizer
+            Optimize
           </button>
           <button
             type="button"
             className={`tab-btn ${activeSection === "governance" ? "active" : ""}`}
             onClick={() => setActiveSection("governance")}
           >
-            3. Policy Governance {isBreached && <span style={{ color: "var(--status-breach-fg)", fontWeight: 700 }}>•</span>}
-          </button>
-          <button
-            type="button"
-            className={`tab-btn ${activeSection === "rebalance" ? "active" : ""}`}
-            onClick={() => setActiveSection("rebalance")}
-          >
-            4. Defensive Rebalance
+            Risk & Alerts {isBreached ? (
+              <span style={{ color: "var(--status-breach-fg)", fontWeight: 700, marginLeft: "4px" }}>•</span>
+            ) : hasWarning ? (
+              <span style={{ color: "var(--status-warning-fg)", fontWeight: 700, marginLeft: "4px" }}>•</span>
+            ) : null}
           </button>
           <button
             type="button"
             className={`tab-btn ${activeSection === "stress" ? "active" : ""}`}
             onClick={() => setActiveSection("stress")}
           >
-            5. Stress Workbench
+            Stress Lab
+          </button>
+          <button
+            type="button"
+            className={`tab-btn ${activeSection === "rebalance" ? "active" : ""}`}
+            onClick={() => setActiveSection("rebalance")}
+          >
+            Rebalance {isBreached && <span style={{ color: "var(--status-breach-fg)", fontWeight: 700, marginLeft: "4px" }}>!</span>}
+          </button>
+          <button
+            type="button"
+            className={`tab-btn ${activeSection === "methodology" ? "active" : ""}`}
+            onClick={() => setActiveSection("methodology")}
+          >
+            Methodology
           </button>
         </nav>
 
-        {/* Workstation Tab Views */}
+        {/* Workstation Tab Content Views */}
         <div style={{ marginTop: "var(--spacing-lg)" }}>
+          {/* Tab 1: Executive Overview */}
+          {activeSection === "overview" && (
+            <OverviewPanel
+              capital={capital}
+              metrics={metrics}
+              audit={audit}
+              earlyWarning={earlyWarning}
+              liquidityOutlook={liquidityOutlook}
+              projection={projection}
+              assets={assets}
+              weights={weights}
+              onNavigateToTab={(tab) => {
+                if (tab === "optimizer") setActiveSection("optimizer");
+                else if (tab === "governance") setActiveSection("governance");
+                else if (tab === "allocation") setActiveSection("allocation");
+                else if (tab === "rebalance") setActiveSection("rebalance");
+                else if (tab === "stress") setActiveSection("stress");
+                else if (tab === "methodology") setActiveSection("methodology");
+                else setActiveSection(tab as any);
+              }}
+              onSimulateState={handleSimulateState}
+              loading={loading}
+            />
+          )}
+
+          {/* Tab 2: Holdings & Asset Universe */}
           {activeSection === "allocation" && (
             <AllocationTable
               assets={assets}
@@ -373,9 +477,11 @@ export default function WorkstationPage() {
             />
           )}
 
+          {/* Tab 3: CVXPY Optimizer */}
           {activeSection === "optimizer" && (
             <OptimizerPanel
               capital={capital}
+              currentWeights={weights}
               onRunOptimization={handleRunOptimization}
               onApplyWeights={handleApplyOptimizedWeights}
               lastOptimization={lastOptimization}
@@ -384,6 +490,7 @@ export default function WorkstationPage() {
             />
           )}
 
+          {/* Tab 4: Risk & Alerts (Policy Audit + Early Warning) */}
           {activeSection === "governance" && (
             <PolicyAuditPanel
               audit={audit}
@@ -392,16 +499,7 @@ export default function WorkstationPage() {
             />
           )}
 
-          {activeSection === "rebalance" && (
-            <DefensiveRebalance
-              rebalanceResult={rebalanceResult}
-              onExecuteRebalance={handleExecuteRebalance}
-              onApplyDefensiveWeights={handleApplyDefensiveWeights}
-              loading={rebalLoading}
-              isBreached={isBreached}
-            />
-          )}
-
+          {/* Tab 5: Stress Lab */}
           {activeSection === "stress" && (
             <StressWorkbench
               capital={capital}
@@ -414,6 +512,22 @@ export default function WorkstationPage() {
               loading={stressLoading}
             />
           )}
+
+          {/* Tab 6: Defensive Rebalance */}
+          {activeSection === "rebalance" && (
+            <DefensiveRebalance
+              rebalanceResult={rebalanceResult}
+              onExecuteRebalance={handleExecuteRebalance}
+              onApplyDefensiveWeights={handleApplyDefensiveWeights}
+              loading={rebalLoading}
+              isBreached={isBreached}
+            />
+          )}
+
+          {/* Tab 7: Quantitative Methodology */}
+          {activeSection === "methodology" && (
+            <MethodologyPanel onOpenDisclaimer={() => setIsDisclaimerOpen(true)} />
+          )}
         </div>
       </main>
 
@@ -423,11 +537,11 @@ export default function WorkstationPage() {
         onClose={() => setIsDisclaimerOpen(false)}
       />
 
-      {/* Institutional Footer */}
+      {/* Minimal Footer */}
       <footer
         style={{
           borderTop: "1px solid var(--border-hairline)",
-          padding: "16px var(--spacing-lg)",
+          padding: "14px var(--spacing-lg)",
           backgroundColor: "var(--surface)",
           fontSize: "12px",
           color: "var(--text-muted)",
@@ -445,11 +559,21 @@ export default function WorkstationPage() {
           }}
         >
           <div>
-            <strong>JERIFIN</strong> — Institutional Capital Allocation & Treasury Risk Platform
+            GitHub:{" "}
+            <a
+              href="https://github.com/M4yank09/JerichoFin"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: "var(--text-secondary)",
+                textDecoration: "underline",
+                fontFamily: "var(--font-mono)",
+              }}
+            >
+              https://github.com/M4yank09/JerichoFin
+            </a>
           </div>
-          <div>
-            Deterministic Synthetic Simulations • Conic Convex Solver (CVXPY) • Rockafellar-Uryasev CVaR
-          </div>
+          <div>made with ♥ by Team Jericho</div>
         </div>
       </footer>
     </div>

@@ -329,6 +329,12 @@ class TestPolicyIntegrationAndDefensiveResponse:
         assert res.defensive_response.post_rebalance_policy.overall_status == RiskState.NORMAL.value
         assert res.defensive_response.turnover > 0.0
         assert "Before -> After" in res.defensive_response.explanation
+        # Assert restored portfolio value reflects execution friction
+        assert res.restored_portfolio_value < res.stressed_portfolio_value
+        assert pytest.approx(res.restored_portfolio_value, rel=1e-5) == res.defensive_response.post_rebalance_capital
+        assert res.restored_status == RiskState.NORMAL.value
+        assert res.restored_cvar is not None
+        assert res.restored_liquidity is not None
 
     def test_capital_scaling(self, stress_setup):
         """Test 13: Stress testing scales accurately with capital ($10M vs $100M)."""

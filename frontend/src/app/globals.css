@@ -47,6 +47,12 @@
   --status-critical-bg: #FEE2E2;
   --status-critical-bd: #FCA5A5;
 
+  /* Editorial Accents (PAN Path inspired) */
+  --accent-ochre: #C2410C;
+  --accent-ochre-faint: #FFF7ED;
+  --accent-ochre-bd: #FED7AA;
+  --accent-green-faint: #F0FDF4;
+
   /* Typography Families */
   --font-serif: "Instrument Serif", "Newsreader", Georgia, serif;
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -63,6 +69,61 @@
   /* Transitions */
   --ease-quick: 120ms cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* ==============================================================================
+   DARK THEME: RESTRAINED INSTITUTIONAL CHARCOAL / NAVY
+   Preserves crisp structural hairlines and institutional typography
+   ============================================================================== */
+
+[data-theme="dark"] {
+  /* Canvas & Structural Neutrals */
+  --canvas: #0B0F17;
+  --surface: #111827;
+  --surface-alt: #1E293B;
+  --surface-subtle: #0F172A;
+  
+  /* Borders & Dividers */
+  --border-hairline: #1E293B;
+  --border-medium: #334155;
+  --border-dark: #475569;
+  --border-focus: #38BDF8;
+
+  /* Typography Colors */
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --text-faint: #64748B;
+
+  /* Brand / Authority Accents */
+  --brand-navy: #93C5FD;
+  --brand-navy-light: #BFDBFE;
+  --brand-accent: #38BDF8;
+  --brand-accent-faint: #1E293B;
+
+  /* Editorial Accents */
+  --accent-ochre: #FB923C;
+  --accent-ochre-faint: #291B07;
+  --accent-ochre-bd: #78350F;
+  --accent-green-faint: #062615;
+
+  /* Risk & Governance Status Tokens (Subdued in Dark Mode) */
+  --status-normal-fg: #4ADE80;
+  --status-normal-bg: #052E16;
+  --status-normal-bd: #14532D;
+
+  --status-warning-fg: #FBBF24;
+  --status-warning-bg: #451A03;
+  --status-warning-bd: #78350F;
+
+  --status-breach-fg: #F87171;
+  --status-breach-bg: #450A0A;
+  --status-breach-bd: #7F1D1D;
+
+  --status-critical-fg: #FCA5A5;
+  --status-critical-bg: #5A0808;
+  --status-critical-bd: #991B1B;
+}
+
 
 /* ==============================================================================
    RESET & FOUNDATIONS
@@ -715,3 +776,194 @@ h1, h2, h3, h4 {
   align-items: center;
   gap: var(--spacing-md);
 }
+
+/* ==============================================================================
+   EXECUTIVE OVERVIEW & ATTENTION CARDS
+   ============================================================================== */
+
+.attention-card {
+  border: 1px solid var(--border-medium);
+  background-color: var(--surface);
+  border-left: 4px solid var(--brand-navy);
+  padding: 16px 20px;
+  margin-bottom: var(--spacing-lg);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  transition: all var(--ease-quick);
+}
+
+.attention-card.warning {
+  border-left-color: var(--status-warning-fg);
+  background-color: var(--status-warning-bg);
+}
+
+.attention-card.breach {
+  border-left-color: var(--status-breach-fg);
+  background-color: var(--status-breach-bg);
+}
+
+.attention-card.normal {
+  border-left-color: var(--status-normal-fg);
+  background-color: var(--surface);
+}
+
+.attention-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+/* ==============================================================================
+   DECISION SUPPORT: "WHAT SHOULD I DO?" PANEL
+   ============================================================================== */
+
+.recommendation-panel {
+  border: 1px solid var(--border-hairline);
+  background-color: var(--surface);
+  margin-bottom: var(--spacing-lg);
+}
+
+.recommendation-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border-hairline);
+  background-color: var(--surface-alt);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.recommendation-body {
+  padding: 20px;
+}
+
+.expected-effects-list {
+  list-style: none;
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.expected-effects-list li {
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.expected-effects-list li::before {
+  content: "→";
+  font-family: var(--font-mono);
+  color: var(--brand-navy);
+  font-weight: 700;
+}
+
+/* ==============================================================================
+   EARLY WARNING TIMELINE & SPARKLINES
+   ============================================================================== */
+
+.timeline-strip {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 38px;
+  padding: 4px 0;
+}
+
+.timeline-bar {
+  flex: 1;
+  background-color: var(--brand-navy);
+  min-height: 4px;
+  border-radius: 1px;
+  transition: height 120ms ease-out;
+  position: relative;
+}
+
+.timeline-bar:hover {
+  background-color: var(--accent-ochre);
+}
+
+.timeline-bar.elevated {
+  background-color: var(--status-warning-fg);
+}
+
+.timeline-bar.critical {
+  background-color: var(--status-breach-fg);
+}
+
+/* Horizon Segmented Control */
+.horizon-segmented {
+  display: inline-flex;
+  border: 1px solid var(--border-medium);
+  background-color: var(--surface-alt);
+  padding: 2px;
+  gap: 2px;
+}
+
+.horizon-btn {
+  padding: 4px 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 1px;
+  transition: all var(--ease-quick);
+}
+
+.horizon-btn:hover {
+  color: var(--text-primary);
+}
+
+.horizon-btn.active {
+  background-color: var(--surface);
+  color: var(--text-primary);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+}
+
+/* Progressive Disclosure Accordion */
+.disclosure-card {
+  border: 1px solid var(--border-hairline);
+  background-color: var(--surface);
+  margin-bottom: var(--spacing-md);
+}
+
+.disclosure-trigger {
+  width: 100%;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.disclosure-trigger:hover {
+  background-color: var(--surface-alt);
+}
+
+.disclosure-content {
+  padding: 16px 18px;
+  border-top: 1px solid var(--border-hairline);
+}
+

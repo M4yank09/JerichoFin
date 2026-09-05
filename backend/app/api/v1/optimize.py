@@ -41,6 +41,9 @@ def optimize_portfolio(request: OptimizationRequest) -> OptimizationResponse:
     # Resolve assets
     if request.custom_assets:
         assets: List[Asset] = [asset_item_to_domain(a) for a in request.custom_assets]
+    elif getattr(request, "universe", None) == "indian":
+        from backend.app.engine.synthetic_data import INDIAN_INSTITUTIONAL_ASSETS
+        assets = INDIAN_INSTITUTIONAL_ASSETS
     else:
         assets = DEFAULT_INSTITUTIONAL_ASSETS
 

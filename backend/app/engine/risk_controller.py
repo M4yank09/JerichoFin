@@ -395,6 +395,8 @@ class RiskControlEngine:
                 post_rebalance_policy=pre_policy,
                 explanation="Portfolio is currently compliant with institutional policy. No defensive rebalancing required.",
                 message="No defensive action needed.",
+                post_rebalance_capital=total_capital,
+                rebalance_cost=0.0,
             )
 
         # 2. Formulate Defensive Optimization Problem
@@ -488,6 +490,8 @@ class RiskControlEngine:
                     post_rebalance_policy=pre_policy,
                     explanation="No feasible defensive allocation exists under the current policy constraints.",
                     message="No feasible defensive allocation exists under the current policy constraints.",
+                    post_rebalance_capital=total_capital,
+                    rebalance_cost=0.0,
                 )
 
         # 3. Extract Defensive Weights & Normalize
@@ -506,6 +510,9 @@ class RiskControlEngine:
         drifts, turnover, rebalance_req = self.calculate_drift(
             current_weights, defensive_weights, total_capital, pol.drift_threshold
         )
+
+        rebalance_cost = turnover * total_capital * 0.0010
+        post_rebalance_capital = total_capital - rebalance_cost
 
         curr_allocs = calculate_monetary_allocations(current_weights, total_capital)
         def_allocs = calculate_monetary_allocations(defensive_weights, total_capital)
@@ -536,6 +543,8 @@ class RiskControlEngine:
             post_rebalance_policy=post_policy,
             explanation=explanation,
             message="Defensive reallocation successfully restored compliance with institutional policy.",
+            post_rebalance_capital=post_rebalance_capital,
+            rebalance_cost=rebalance_cost,
         )
 
     def _compute_portfolio_metrics(

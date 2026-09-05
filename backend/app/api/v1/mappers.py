@@ -155,6 +155,8 @@ def defensive_result_to_response(
         post_rebalance_checks=post_checks,
         explanation=res.explanation,
         message=res.message,
+        post_rebalance_capital=res.post_rebalance_capital if res.post_rebalance_capital > 0 else capital,
+        rebalance_cost=res.rebalance_cost,
     )
 
 
@@ -198,4 +200,8 @@ def stress_result_to_response(
         policy_evaluation=policy_eval_to_response(res.policy_evaluation),
         defensive_response=defensive_resp,
         summary=res.summary,
+        restored_portfolio_value=res.restored_portfolio_value,
+        restored_cvar=res.restored_cvar,
+        restored_liquidity_score=res.restored_liquidity,
+        restored_status=res.restored_status,
     )

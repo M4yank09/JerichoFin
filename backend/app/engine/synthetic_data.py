@@ -17,7 +17,7 @@ from backend.app.schemas.portfolio import Asset, AssetClass, LiquidityTier
 # Prominently exported banner
 DATA_DISCLAIMER = "DEMO / SYNTHETIC DATA - NOT LIVE MARKET QUOTES"
 
-# Standard institutional demo asset universe
+# Standard institutional demo asset universe (legacy / baseline)
 DEFAULT_INSTITUTIONAL_ASSETS: List[Asset] = [
     Asset(
         symbol="USD_CASH",
@@ -66,6 +66,165 @@ DEFAULT_INSTITUTIONAL_ASSETS: List[Asset] = [
     ),
 ]
 
+# Indian Institutional Treasury Asset Universe (Curated Demo)
+INDIAN_INSTITUTIONAL_ASSETS: List[Asset] = [
+    Asset(
+        symbol="INR_CASH",
+        name="TREPS / Overnight Bank Call & Repo",
+        asset_class=AssetClass.CASH_EQUIVALENTS.value,
+        liquidity_tier=LiquidityTier.TIER_1_IMMEDIATE.value,
+        liquidity_score=1.0,
+        duration=0.0,
+        currency="INR",
+        expected_return=0.065,
+        metadata={
+            "category": "Overnight Liquidity",
+            "issuer": "CCIL / Clearing Corporation of India",
+            "risk_level": "Minimal",
+            "settlement": "T+0",
+            "horizon_label": "Immediate (Today)",
+        },
+    ),
+    Asset(
+        symbol="IN_TBILL_91D",
+        name="RBI 91-Day Treasury Bills",
+        asset_class=AssetClass.SOVEREIGN_BONDS.value,
+        liquidity_tier=LiquidityTier.TIER_2_OPERATIONAL.value,
+        liquidity_score=0.95,
+        duration=0.25,
+        currency="INR",
+        expected_return=0.0675,
+        metadata={
+            "category": "Sovereign T-Bills",
+            "issuer": "Reserve Bank of India",
+            "risk_level": "Sovereign Risk-Free",
+            "settlement": "T+1",
+            "horizon_label": "Operating (30 Days)",
+        },
+    ),
+    Asset(
+        symbol="IN_GSEC_10Y",
+        name="GoI Benchmark 10Y G-Sec (7.18% 2033)",
+        asset_class=AssetClass.SOVEREIGN_BONDS.value,
+        liquidity_tier=LiquidityTier.TIER_2_OPERATIONAL.value,
+        liquidity_score=0.90,
+        duration=6.80,
+        currency="INR",
+        expected_return=0.0718,
+        metadata={
+            "category": "Sovereign Debt",
+            "issuer": "Government of India",
+            "risk_level": "Duration Risk Only",
+            "settlement": "T+1",
+            "horizon_label": "Strategic Deployment (3-12M)",
+        },
+    ),
+    Asset(
+        symbol="IN_SDL_10Y",
+        name="10-Year State Development Loans (SDLs)",
+        asset_class=AssetClass.SOVEREIGN_BONDS.value,
+        liquidity_tier=LiquidityTier.TIER_2_OPERATIONAL.value,
+        liquidity_score=0.85,
+        duration=6.90,
+        currency="INR",
+        expected_return=0.0745,
+        metadata={
+            "category": "Sub-Sovereign Debt",
+            "issuer": "State Governments (RBI Auctioned)",
+            "risk_level": "Sovereign Equivalent",
+            "settlement": "T+1",
+            "horizon_label": "Strategic Deployment (3-12M)",
+        },
+    ),
+    Asset(
+        symbol="IN_CP_90D",
+        name="Tier-1 AAA Commercial Paper (90-Day)",
+        asset_class=AssetClass.COMMERCIAL_PAPER.value,
+        liquidity_tier=LiquidityTier.TIER_2_OPERATIONAL.value,
+        liquidity_score=0.80,
+        duration=0.25,
+        currency="INR",
+        expected_return=0.0760,
+        metadata={
+            "category": "Short-Term Corporate Paper",
+            "issuer": "AAA Corporates & NBFCs",
+            "risk_level": "Low Credit Risk",
+            "settlement": "T+1",
+            "horizon_label": "Operating (30-90 Days)",
+        },
+    ),
+    Asset(
+        symbol="IN_CD_3M",
+        name="Certificates of Deposit (3-Month Bank CD)",
+        asset_class=AssetClass.COMMERCIAL_PAPER.value,
+        liquidity_tier=LiquidityTier.TIER_2_OPERATIONAL.value,
+        liquidity_score=0.85,
+        duration=0.25,
+        currency="INR",
+        expected_return=0.0730,
+        metadata={
+            "category": "Bank Short Paper",
+            "issuer": "Schedule A Commercial Banks",
+            "risk_level": "Minimal Credit Risk",
+            "settlement": "T+1",
+            "horizon_label": "Operating (30-90 Days)",
+        },
+    ),
+    Asset(
+        symbol="IN_CORP_AAA",
+        name="AAA PSU & Corporate Bonds (3-5Y NCDs)",
+        asset_class=AssetClass.CORPORATE_BONDS.value,
+        liquidity_tier=LiquidityTier.TIER_3_STRATEGIC.value,
+        liquidity_score=0.65,
+        duration=3.60,
+        currency="INR",
+        expected_return=0.0785,
+        metadata={
+            "category": "High-Grade Corporate Debt",
+            "issuer": "AAA PSU & Top Corporate Issuers",
+            "risk_level": "Credit Spread Risk",
+            "settlement": "T+2",
+            "horizon_label": "Longer-Duration Allocation (12M+)",
+        },
+    ),
+    Asset(
+        symbol="IN_GOLD",
+        name="Sovereign Gold / Gold ETF Strategic Overlay",
+        asset_class=AssetClass.STRATEGIC_YIELD.value,
+        liquidity_tier=LiquidityTier.TIER_3_STRATEGIC.value,
+        liquidity_score=0.70,
+        duration=0.0,
+        currency="INR",
+        expected_return=0.0850,
+        metadata={
+            "category": "Inflation & Currency Hedge",
+            "issuer": "RBI / Regulated Mutual Funds",
+            "risk_level": "Commodity Price Volatility",
+            "settlement": "T+1",
+            "horizon_label": "Strategic Diversifier (12M+)",
+        },
+    ),
+    Asset(
+        symbol="IN_EQUITY_LARGE",
+        name="Nifty 50 Large-Cap Equity Allocation",
+        asset_class=AssetClass.STRATEGIC_YIELD.value,
+        liquidity_tier=LiquidityTier.TIER_3_STRATEGIC.value,
+        liquidity_score=0.60,
+        duration=0.0,
+        currency="INR",
+        expected_return=0.1150,
+        metadata={
+            "category": "Return-Seeking Equity Buffer",
+            "issuer": "Diversified Large-Cap Index Basket",
+            "risk_level": "Market Beta",
+            "settlement": "T+1",
+            "horizon_label": "Longer-Duration Growth (12M+)",
+        },
+    ),
+]
+
+ALL_INSTITUTIONAL_ASSETS: List[Asset] = INDIAN_INSTITUTIONAL_ASSETS + DEFAULT_INSTITUTIONAL_ASSETS
+
 
 def generate_deterministic_synthetic_returns(
     assets: Optional[List[Asset]] = None,
@@ -102,49 +261,57 @@ def generate_deterministic_synthetic_returns(
 
     rng = np.random.default_rng(seed)
 
-    # Base daily parameters (annualized mean / 252, annualized vol / sqrt(252))
-    # Target annualized profiles:
-    # Cash: ret=4.5%, vol=0.2%
-    # T-Bill: ret=4.8%, vol=0.6%
-    # CP: ret=5.2%, vol=1.4%
-    # Corp IG: ret=5.8%, vol=5.0%
-    # Strategic Yield: ret=7.0%, vol=10.0%
     annual_vols = []
     annual_means = []
 
     for a in assets:
         ann_ret = a.expected_return if a.expected_return is not None else 0.05
         annual_means.append(ann_ret)
-        if "CASH" in a.symbol:
+        sym = a.symbol.upper()
+        if "CASH" in sym or "REPO" in sym or "TREPS" in sym:
             annual_vols.append(0.002)
-        elif "TBILL" in a.symbol or "SOV" in a.symbol:
+        elif "TBILL" in sym:
             annual_vols.append(0.006)
-        elif "PAPER" in a.symbol or "CP" in a.symbol:
+        elif "GSEC" in sym or "SOV" in sym:
+            annual_vols.append(0.038)
+        elif "SDL" in sym:
+            annual_vols.append(0.040)
+        elif "PAPER" in sym or "CP" in sym or "CD" in sym:
             annual_vols.append(0.014)
-        elif "CORP" in a.symbol:
-            annual_vols.append(0.050)
+        elif "CORP" in sym or "BOND" in sym:
+            annual_vols.append(0.048)
+        elif "GOLD" in sym:
+            annual_vols.append(0.120)
+        elif "EQUITY" in sym or "NIFTY" in sym:
+            annual_vols.append(0.145)
         else:
             annual_vols.append(0.100)
 
     daily_means = np.array(annual_means) / 252.0
     daily_vols = np.array(annual_vols) / np.sqrt(252.0)
 
-    # Correlation matrix:
-    # Cash has near-zero correlation with all
-    # T-Bill and Corp have modest correlation
-    # Corp and Strategic Yield have positive correlation (0.45)
-    # T-Bill and Strategic Yield have negative/flight-to-quality correlation (-0.15)
     corr_matrix = np.eye(n_assets)
     for i in range(n_assets):
         for j in range(i + 1, n_assets):
-            sym_i, sym_j = symbols[i], symbols[j]
-            if "CASH" in sym_i or "CASH" in sym_j:
+            sym_i, sym_j = symbols[i].upper(), symbols[j].upper()
+            if ("CASH" in sym_i or "REPO" in sym_i or "TREPS" in sym_i or
+                "CASH" in sym_j or "REPO" in sym_j or "TREPS" in sym_j):
                 c = 0.02
-            elif ("TBILL" in sym_i and "CORP" in sym_j) or ("CORP" in sym_i and "TBILL" in sym_j):
+            elif (("GSEC" in sym_i and "SDL" in sym_j) or ("SDL" in sym_i and "GSEC" in sym_j)):
+                c = 0.85
+            elif (("TBILL" in sym_i and "GSEC" in sym_j) or ("GSEC" in sym_i and "TBILL" in sym_j)):
+                c = 0.65
+            elif (("CP" in sym_i and "CD" in sym_j) or ("CD" in sym_i and "CP" in sym_j)):
+                c = 0.70
+            elif (("TBILL" in sym_i and "CORP" in sym_j) or ("CORP" in sym_i and "TBILL" in sym_j)):
                 c = 0.20
-            elif ("TBILL" in sym_i and "STRAT" in sym_j) or ("STRAT" in sym_i and "TBILL" in sym_j):
+            elif (("TBILL" in sym_i and ("STRAT" in sym_j or "EQUITY" in sym_j)) or
+                  (("STRAT" in sym_i or "EQUITY" in sym_i) and "TBILL" in sym_j)):
                 c = -0.15  # Flight to quality
-            elif ("CORP" in sym_i and "STRAT" in sym_j) or ("STRAT" in sym_i and "CORP" in sym_j):
+            elif (("GOLD" in sym_i and "EQUITY" in sym_j) or ("EQUITY" in sym_i and "GOLD" in sym_j)):
+                c = -0.12  # Gold hedge vs equity
+            elif (("CORP" in sym_i and ("STRAT" in sym_j or "EQUITY" in sym_j)) or
+                  (("STRAT" in sym_i or "EQUITY" in sym_i) and "CORP" in sym_j)):
                 c = 0.45   # Credit/market risk correlation
             else:
                 c = 0.15
@@ -154,21 +321,33 @@ def generate_deterministic_synthetic_returns(
     # Construct covariance matrix: Cov = diag(vol) * Corr * diag(vol)
     cov_matrix = np.outer(daily_vols, daily_vols) * corr_matrix
 
+    # Ensure strictly symmetric positive semi-definite covariance
+    eigvals, eigvecs = np.linalg.eigh(cov_matrix)
+    eigvals = np.maximum(eigvals, 1e-10)
+    cov_matrix = eigvecs @ np.diag(eigvals) @ eigvecs.T
+    cov_matrix = 0.5 * (cov_matrix + cov_matrix.T)
+
     # Generate correlated normal samples
     raw_returns = rng.multivariate_normal(mean=daily_means, cov=cov_matrix, size=n_periods)
 
-    # Introduce a deterministic downside liquidity/credit stress shock at day 120 and day 180
-    # to demonstrate tail risk, downside diversification, and drawdown
+    # Deterministic downside liquidity/credit stress shock at day 120 and day 180
     if n_periods > 180:
         for idx, a in enumerate(assets):
-            if "CORP" in a.symbol:
-                raw_returns[120, idx] -= 0.018  # -1.8% credit widening shock
-                raw_returns[180, idx] -= 0.022  # -2.2% downgrade event
-            elif "STRAT" in a.symbol:
-                raw_returns[120, idx] -= 0.035  # -3.5% liquidity draw
-                raw_returns[180, idx] -= 0.045  # -4.5% market shock
-            elif "TBILL" in a.symbol:
-                raw_returns[120, idx] += 0.003  # Flight to safety bond price rise
+            sym = a.symbol.upper()
+            if "CORP" in sym or "BOND" in sym:
+                raw_returns[120, idx] -= 0.018  # credit spread widening shock
+                raw_returns[180, idx] -= 0.022  # downgrade event
+            elif "CP" in sym or "CD" in sym:
+                raw_returns[120, idx] -= 0.010
+                raw_returns[180, idx] -= 0.015
+            elif "EQUITY" in sym or "STRAT" in sym:
+                raw_returns[120, idx] -= 0.035  # liquidity / market drawdown
+                raw_returns[180, idx] -= 0.045
+            elif "GOLD" in sym:
+                raw_returns[120, idx] += 0.015  # flight to gold
+                raw_returns[180, idx] += 0.020
+            elif "TBILL" in sym or "GSEC" in sym or "SOV" in sym:
+                raw_returns[120, idx] += 0.003  # flight to sovereign safety
                 raw_returns[180, idx] += 0.004
 
     df = pd.DataFrame(raw_returns, columns=symbols)
@@ -176,3 +355,4 @@ def generate_deterministic_synthetic_returns(
     df.attrs["seed"] = seed
     df.attrs["is_synthetic"] = True
     return df
+

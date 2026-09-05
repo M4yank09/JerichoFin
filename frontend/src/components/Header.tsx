@@ -1,30 +1,33 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { api } from "../lib/api";
 
 interface HeaderProps {
   onOpenDisclaimer: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ onOpenDisclaimer }) => {
-  const [backendStatus, setBackendStatus] = useState<"connecting" | "connected" | "disconnected">("connecting");
-  const [apiVersion, setApiVersion] = useState<string>("1.0.0");
+  const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
-    let isMounted = true;
-    api.checkHealth()
-      .then((res) => {
-        if (isMounted) {
-          setBackendStatus("connected");
-          if (res.version) setApiVersion(res.version);
-        }
-      })
-      .catch(() => {
-        if (isMounted) setBackendStatus("disconnected");
-      });
-    return () => { isMounted = false; };
+    // Theme initialization
+    const savedTheme = (typeof window !== "undefined" && localStorage.getItem("jerifin-theme")) as "light" | "dark" | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.setAttribute("data-theme", savedTheme);
+    } else {
+      document.documentElement.setAttribute("data-theme", "light");
+    }
   }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === "light" ? "dark" : "light";
+    setTheme(nextTheme);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("jerifin-theme", nextTheme);
+      document.documentElement.setAttribute("data-theme", nextTheme);
+    }
+  };
 
   return (
     <header className="masthead">
@@ -37,30 +40,24 @@ export const Header: React.FC<HeaderProps> = ({ onOpenDisclaimer }) => {
         <div className="status-cluster">
           <div className="demo-indicator" title="Deterministic synthetic market data for demonstration">
             <span className="demo-dot" />
-            <span>DEMO / SYNTHETIC DATA</span>
+            <span>DEMO / SYNTHETIC DATA • INR</span>
           </div>
 
-          <div className="api-status-pill">
-            <span
-              className="status-dot-green"
-              style={{
-                backgroundColor:
-                  backendStatus === "connected"
-                    ? "#10B981"
-                    : backendStatus === "connecting"
-                    ? "#F59E0B"
-                    : "#EF4444",
-              }}
-            />
-            <span>
-              API: {backendStatus.toUpperCase()} {backendStatus === "connected" ? `(v${apiVersion})` : ""}
-            </span>
-          </div>
+          {/* Institutional Light / Dark Theme Switcher */}
+          <button
+            onClick={toggleTheme}
+            className="btn btn-secondary"
+            style={{ fontSize: "11px", padding: "4px 10px", display: "inline-flex", alignItems: "center", gap: "4px" }}
+            title={`Switch to ${theme === "light" ? "Dark" : "Light"} institutional theme`}
+            aria-label="Toggle theme"
+          >
+            <span>{theme === "light" ? "🌙 Dark" : "☀️ Light"}</span>
+          </button>
 
           <button
             onClick={onOpenDisclaimer}
             className="btn btn-secondary"
-            style={{ fontSize: "11px", padding: "3px 8px" }}
+            style={{ fontSize: "11px", padding: "4px 10px" }}
             title="View methodology, disclaimers, and mathematical assumptions"
           >
             Methodology & Disclaimer

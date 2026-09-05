@@ -10,10 +10,13 @@ from backend.app.api.v1.mappers import (
 from backend.app.engine.analytics import validate_weights
 from backend.app.engine.stress_testing import StressTestingEngine, get_predefined_scenarios
 from backend.app.engine.synthetic_data import (
+    ALL_INSTITUTIONAL_ASSETS,
     DEFAULT_INSTITUTIONAL_ASSETS,
+    INDIAN_INSTITUTIONAL_ASSETS,
     generate_deterministic_synthetic_returns,
 )
 from backend.app.schemas.api import (
+    AssetItem,
     CustomScenarioInput,
     ScenarioSummaryItem,
     StressCompareRequest,
@@ -24,6 +27,21 @@ from backend.app.schemas.api import (
 from backend.app.schemas.portfolio import Asset, StressScenario
 
 router = APIRouter(prefix="/stress", tags=["Stress Testing"])
+
+
+def resolve_asset_universe(weights: Dict[str, float], custom_assets: List[AssetItem] = None) -> List[Asset]:
+    """Resolves institutional asset universe based on requested instrument tickers."""
+    if custom_assets:
+        return [asset_item_to_domain(a) for a in custom_assets]
+    indian_symbols = {a.symbol for a in INDIAN_INSTITUTIONAL_ASSETS}
+    legacy_symbols = {a.symbol for a in DEFAULT_INSTITUTIONAL_ASSETS}
+    weight_symbols = set(weights.keys())
+    if weight_symbols.issubset(indian_symbols):
+        return INDIAN_INSTITUTIONAL_ASSETS
+    elif weight_symbols.issubset(legacy_symbols):
+        return DEFAULT_INSTITUTIONAL_ASSETS
+    else:
+        return ALL_INSTITUTIONAL_ASSETS
 
 
 @router.get(
@@ -68,11 +86,7 @@ def run_stress_test(request: StressRunRequest) -> StressRunResponse:
         )
 
     # Resolve assets
-    if request.custom_assets:
-        assets: List[Asset] = [asset_item_to_domain(a) for a in request.custom_assets]
-    else:
-        assets = DEFAULT_INSTITUTIONAL_ASSETS
-
+    assets = resolve_asset_universe(request.weights, request.custom_assets)
     allowed_symbols = [a.symbol for a in assets]
 
     # Validate weights
@@ -160,11 +174,7 @@ def compare_stress_scenarios(request: StressCompareRequest) -> StressCompareResp
         )
 
     # Resolve assets
-    if request.custom_assets:
-        assets: List[Asset] = [asset_item_to_domain(a) for a in request.custom_assets]
-    else:
-        assets = DEFAULT_INSTITUTIONAL_ASSETS
-
+    assets = resolve_asset_universe(request.weights, request.custom_assets)
     allowed_symbols = [a.symbol for a in assets]
 
     # Validate weights

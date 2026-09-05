@@ -198,6 +198,8 @@ class DefensiveRebalanceResult:
     post_rebalance_policy: PolicyEvaluation
     explanation: str                          # Human-readable before/after explanation
     message: str = ""
+    post_rebalance_capital: float = 0.0
+    rebalance_cost: float = 0.0
 
 
 @dataclass
@@ -243,6 +245,10 @@ class StressTestResult:
     policy_evaluation: PolicyEvaluation
     defensive_response: Optional[DefensiveRebalanceResult] = None
     summary: str = ""
+    restored_portfolio_value: float = 0.0     # Ending post-rebalance / restored capital net of friction
+    restored_cvar: Optional[float] = None     # Post-restoration 95% CVaR
+    restored_liquidity: Optional[float] = None # Post-restoration weighted liquidity
+    restored_status: str = "NORMAL"           # Post-restoration policy state
 
 
 @dataclass

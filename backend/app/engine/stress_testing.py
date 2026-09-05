@@ -294,7 +294,23 @@ class StressTestingEngine:
                 total_capital=max(1.0, stressed_portfolio_val),
             )
 
-        # 6. Structured Narrative Summary
+        # 6. Restored State Evaluation (preserving trigger semantics)
+        if defensive_resp is not None and defensive_resp.status == "SUCCESS":
+            restored_portfolio_val = defensive_resp.post_rebalance_capital
+            restored_cvar = defensive_resp.defensive_metrics.get("cvar_95")
+            restored_liq = defensive_resp.defensive_metrics.get("liquidity_score")
+            restored_status = (
+                defensive_resp.post_rebalance_policy.overall_status
+                if defensive_resp.post_rebalance_policy
+                else "NORMAL"
+            )
+        else:
+            restored_portfolio_val = stressed_portfolio_val
+            restored_cvar = stressed_metrics.cvar_95_historical
+            restored_liq = stressed_metrics.weighted_liquidity_score
+            restored_status = policy_eval.overall_status
+
+        # 7. Structured Narrative Summary
         summary = (
             f"Scenario '{scenario.name}' ({scenario.severity}): Stressed return of {stressed_p_return:+.2%}, "
             f"resulting in net P&L of ${stressed_pnl:,.2f}. Ending capital: ${stressed_portfolio_val:,.2f}. "
@@ -317,6 +333,10 @@ class StressTestingEngine:
             policy_evaluation=policy_eval,
             defensive_response=defensive_resp,
             summary=summary,
+            restored_portfolio_value=restored_portfolio_val,
+            restored_cvar=restored_cvar,
+            restored_liquidity=restored_liq,
+            restored_status=restored_status,
         )
 
     def run_multi_scenario_comparison(

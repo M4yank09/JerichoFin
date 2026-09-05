@@ -104,6 +104,7 @@ class OptimizationRequest(BaseModel):
         description="Institutional risk and allocation limits"
     )
     risk_free_rate: float = Field(default=0.045, description="Annualized benchmark risk-free rate")
+    universe: Optional[str] = Field(default=None, description="Asset universe ('indian' or 'legacy')")
     custom_assets: Optional[List[AssetItem]] = Field(default=None, description="Optional custom asset definitions")
 
 
@@ -228,6 +229,8 @@ class DefensiveRebalanceResponse(BaseModel):
     post_rebalance_checks: List[PolicyCheckItem] = Field(..., description="Audit results for defensive allocation")
     explanation: str = Field(..., description="Executive rationale and rebalancing summary")
     message: str = Field(default="", description="Diagnostic message")
+    post_rebalance_capital: float = Field(default=0.0, description="Post-rebalance capital net of execution friction")
+    rebalance_cost: float = Field(default=0.0, description="Estimated execution friction and transaction cost")
 
 
 # ==============================================================================
@@ -297,6 +300,13 @@ class StressRunResponse(BaseModel):
     policy_evaluation: RiskEvaluationResponse = Field(..., description="Full policy audit report post-stress")
     defensive_response: Optional[DefensiveRebalanceResponse] = Field(default=None, description="Defensive rebalancing if triggered")
     summary: str = Field(default="", description="Executive scenario impact narrative")
+    restored_portfolio_value: float = Field(
+        ...,
+        description="Post-rebalance or restored portfolio capital net of execution friction when rebalanced, or post-shock capital when compliant"
+    )
+    restored_cvar: Optional[float] = Field(default=None, description="Post-restoration downside tail risk (95% CVaR)")
+    restored_liquidity_score: Optional[float] = Field(default=None, description="Post-restoration portfolio weighted liquidity score")
+    restored_status: str = Field(default="NORMAL", description="Post-restoration policy compliance state")
 
 
 class ScenarioSummaryItem(BaseModel):
@@ -343,3 +353,139 @@ class ErrorResponse(BaseModel):
     error: str = Field(..., description="Error category / name")
     detail: str = Field(..., description="Human-readable diagnostic error message")
     code: int = Field(..., description="HTTP status code")
+
+
+# ==============================================================================
+# 8. EARLY WARNING SCHEMAS
+# ==============================================================================
+
+class EarlyWarningSignalItem(BaseModel):
+    """Individual early warning signal evaluation."""
+    signal_id: str = Field(..., description="Unique signal identifier")
+    name: str = Field(..., description="Human-readable signal title")
+    severity: str = Field(..., description="LOW, MEDIUM, or HIGH")
+    trend: str = Field(..., description="IMPROVING, STABLE, or DETERIORATING")
+    current_value: float = Field(..., description="Current evaluated metric value")
+    threshold: float = Field(..., description="Warning trigger threshold")
+    operator: str = Field(..., description="Comparison operator (<= or >=)")
+    explanation: str = Field(..., description="Diagnostic rationale")
+    recommended_action: str = Field(..., description="Prescribed preemptive treasury action")
+
+
+class TimelinePointItem(BaseModel):
+    """Historical risk metric observation along the 30-day timeline."""
+    day: int = Field(..., description="Day index 1..30")
+    cvar: float = Field(..., description="Rolling 95% Daily CVaR")
+    liquidity: float = Field(..., description="Rolling liquidity score")
+    volatility: float = Field(..., description="Rolling annualized volatility")
+    drawdown: float = Field(..., description="Rolling maximum drawdown")
+
+
+class RecommendationItem(BaseModel):
+    """Actionable 'What Should I Do?' decision support recommendation."""
+    status: str = Field(..., description="Portfolio status (STABLE, WATCH, ELEVATED, DEFENSIVE)")
+    title: str = Field(..., description="Executive headline recommendation")
+    reason: str = Field(..., description="Underlying diagnosis")
+    recommended_action: str = Field(..., description="Action to take")
+    expected_effects: List[str] = Field(..., description="Anticipated impact points")
+    priority: str = Field(..., description="ROUTINE, ELEVATED, or URGENT")
+
+
+class EarlyWarningRequest(BaseModel):
+    """Request payload to evaluate forward-looking warning signals."""
+    capital: float = Field(..., gt=0, description="Total capital pool size in base currency")
+    weights: Dict[str, float] = Field(..., description="Portfolio allocation weights")
+    policy: Optional[TreasuryPolicyInput] = Field(default=None, description="Optional custom treasury policy")
+    custom_assets: Optional[List[AssetItem]] = Field(default=None, description="Optional custom asset definitions")
+
+
+class EarlyWarningResponse(BaseModel):
+    """Comprehensive early warning and decision support report."""
+    overall_status: str = Field(..., description="Overall state: STABLE, WATCH, ELEVATED, DEFENSIVE")
+    warning_count: int = Field(..., description="Count of active warnings")
+    summary: str = Field(..., description="Executive narrative summary")
+    timeline_summary: str = Field(..., description="Summary of 30-day historical trend")
+    signals: List[EarlyWarningSignalItem] = Field(..., description="Evaluated warning signals")
+    timeline: List[TimelinePointItem] = Field(..., description="30-day historical risk trend points")
+    recommendation: RecommendationItem = Field(..., description="Actionable recommendation")
+
+
+# ==============================================================================
+# 9. LIQUIDITY OUTLOOK SCHEMAS
+# ==============================================================================
+
+class HorizonDetailItem(BaseModel):
+    """Granular coverage report for a specific time horizon."""
+    horizon_days: int = Field(..., description="Horizon duration in days (7, 30, 90, 180)")
+    horizon_label: str = Field(..., description="Descriptive horizon title")
+    available_liquid_capital: float = Field(..., description="Liquid reserves available")
+    baseline_outflow_need: float = Field(..., description="Operational commitments")
+    stress_haircut_monetary: float = Field(..., description="Haircut under stressed conditions")
+    stressed_available_capital: float = Field(..., description="Net available reserves under stress")
+    baseline_coverage_ratio: float = Field(..., description="Baseline coverage ratio (x)")
+    stress_coverage_ratio: float = Field(..., description="Stress coverage ratio (x)")
+    policy_minimum_ratio: float = Field(..., description="Policy minimum (typically 1.00x)")
+    status: str = Field(..., description="HEALTHY, WATCH, or AT_RISK")
+    tier_contributions: Dict[str, float] = Field(..., description="Liquidity capital per tier")
+    explanation: str = Field(..., description="Plain-English assessment")
+
+
+class LiquidityOutlookRequest(BaseModel):
+    """Request payload to simulate forward liquidity coverage."""
+    capital: float = Field(..., gt=0, description="Total capital pool size in base currency")
+    weights: Dict[str, float] = Field(..., description="Portfolio allocation weights")
+    policy: Optional[TreasuryPolicyInput] = Field(default=None, description="Optional custom policy")
+    selected_horizon_days: int = Field(default=30, description="Primary focus horizon in days")
+    custom_assets: Optional[List[AssetItem]] = Field(default=None, description="Optional custom asset definitions")
+
+
+class LiquidityOutlookResponse(BaseModel):
+    """Multi-horizon liquidity adequacy report."""
+    capital: float = Field(..., description="Total capital evaluated")
+    current_liquidity_score: float = Field(..., description="Portfolio-weighted liquidity score")
+    primary_horizon_days: int = Field(..., description="Selected horizon")
+    horizons: List[HorizonDetailItem] = Field(..., description="Evaluations across 7D, 30D, 90D, 180D")
+    methodology_notes: str = Field(..., description="Transparent methodology notes")
+
+
+# ==============================================================================
+# 10. PORTFOLIO PROJECTION SCHEMAS
+# ==============================================================================
+
+class ScenarioRangeItem(BaseModel):
+    """Projected portfolio capital and percentage return interval under a scenario."""
+    scenario_name: str = Field(..., description="Conservative, Base Case, or Favorable")
+    min_value: float = Field(..., description="Ending capital lower bound")
+    max_value: float = Field(..., description="Ending capital upper bound")
+    min_return_pct: float = Field(..., description="Percentage return lower bound")
+    max_return_pct: float = Field(..., description="Percentage return upper bound")
+    assumptions: str = Field(..., description="Scenario assumptions")
+
+
+class HorizonProjectionItem(BaseModel):
+    """Multi-scenario projection outcomes for a specific forward horizon."""
+    horizon_months: int = Field(..., description="Horizon duration in months (3, 6, 12)")
+    horizon_label: str = Field(..., description="Horizon title")
+    conservative: ScenarioRangeItem = Field(..., description="Adverse macro scenario")
+    base_case: ScenarioRangeItem = Field(..., description="Central trajectory")
+    favorable: ScenarioRangeItem = Field(..., description="Constructive scenario")
+
+
+class PortfolioProjectionRequest(BaseModel):
+    """Request payload for scenario-based future portfolio projection."""
+    capital: float = Field(..., gt=0, description="Total capital pool size in base currency")
+    weights: Dict[str, float] = Field(..., description="Portfolio allocation weights")
+    selected_horizon_months: int = Field(default=12, description="Primary horizon (3, 6, or 12)")
+    custom_assets: Optional[List[AssetItem]] = Field(default=None, description="Optional custom asset definitions")
+
+
+class PortfolioProjectionResponse(BaseModel):
+    """Scenario-based portfolio projection response."""
+    capital: float = Field(..., description="Starting capital pool")
+    expected_return_annualized: float = Field(..., description="Annualized expected return")
+    volatility_annualized: float = Field(..., description="Annualized volatility")
+    selected_horizon_months: int = Field(..., description="Selected primary horizon")
+    projections: List[HorizonProjectionItem] = Field(..., description="Projections across 3M, 6M, 12M")
+    methodology: str = Field(..., description="Methodology statement")
+    disclaimer: str = Field(..., description="Scenario projection disclaimer")
+
