@@ -2,18 +2,18 @@
 from typing import Dict, List, Optional
 from fastapi import APIRouter, HTTPException, Query, status
 
-from backend.app.api.v1.mappers import asset_domain_to_item, asset_item_to_domain
-from backend.app.engine.analytics import validate_weights
-from backend.app.engine.projection import PortfolioProjectionEngine
-from backend.app.engine.risk import TreasuryRiskEngine
-from backend.app.engine.synthetic_data import (
+from app.api.v1.mappers import asset_domain_to_item, asset_item_to_domain
+from app.engine.analytics import validate_weights
+from app.engine.projection import PortfolioProjectionEngine
+from app.engine.risk import TreasuryRiskEngine
+from app.engine.synthetic_data import (
     ALL_INSTITUTIONAL_ASSETS,
     DATA_DISCLAIMER,
     DEFAULT_INSTITUTIONAL_ASSETS,
     INDIAN_INSTITUTIONAL_ASSETS,
     generate_deterministic_synthetic_returns,
 )
-from backend.app.schemas.api import (
+from app.schemas.api import (
     AssetItem,
     AssetUniverseResponse,
     HorizonProjectionItem,
@@ -23,7 +23,7 @@ from backend.app.schemas.api import (
     PortfolioProjectionResponse,
     ScenarioRangeItem,
 )
-from backend.app.schemas.portfolio import Asset, PortfolioConfig
+from app.schemas.portfolio import Asset, PortfolioConfig
 
 router = APIRouter(prefix="/portfolio", tags=["Portfolio"])
 

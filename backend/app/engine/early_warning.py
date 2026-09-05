@@ -15,7 +15,7 @@ from typing import Dict, List, Optional
 import numpy as np
 import pandas as pd
 
-from backend.app.engine.analytics import (
+from app.engine.analytics import (
     calculate_historical_cvar,
     calculate_historical_var,
     calculate_max_drawdown,
@@ -23,7 +23,7 @@ from backend.app.engine.analytics import (
     calculate_portfolio_volatility,
     calculate_weighted_liquidity_score,
 )
-from backend.app.schemas.portfolio import (
+from app.schemas.portfolio import (
     Asset,
     AssetClass,
     PortfolioConfig,

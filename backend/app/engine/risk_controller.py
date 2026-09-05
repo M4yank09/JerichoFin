@@ -8,7 +8,7 @@ import cvxpy as cp
 import numpy as np
 import pandas as pd
 
-from backend.app.engine.analytics import (
+from app.engine.analytics import (
     calculate_covariance_matrix,
     calculate_expected_return,
     calculate_hhi,
@@ -22,7 +22,7 @@ from backend.app.engine.analytics import (
     calculate_weighted_liquidity_score,
     validate_weights,
 )
-from backend.app.schemas.portfolio import (
+from app.schemas.portfolio import (
     Asset,
     AssetClass,
     AssetDrift,
@@ -574,7 +574,7 @@ class RiskControlEngine:
         liq_scores = {a.symbol: a.liquidity_score for a in assets}
         liq_score = calculate_weighted_liquidity_score(weights, liq_scores)
         liq_tiers = {a.symbol: a.liquidity_tier for a in assets}
-        from backend.app.engine.analytics import calculate_liquidity_tier_breakdown
+        from app.engine.analytics import calculate_liquidity_tier_breakdown
         tier_breakdown = calculate_liquidity_tier_breakdown(weights, liq_tiers)
 
         return PortfolioMetrics(

@@ -2,20 +2,20 @@
 from typing import Dict, List
 from fastapi import APIRouter, HTTPException, status
 
-from backend.app.api.v1.mappers import (
+from app.api.v1.mappers import (
     asset_item_to_domain,
     policy_input_to_domain,
     stress_result_to_response,
 )
-from backend.app.engine.analytics import validate_weights
-from backend.app.engine.stress_testing import StressTestingEngine, get_predefined_scenarios
-from backend.app.engine.synthetic_data import (
+from app.engine.analytics import validate_weights
+from app.engine.stress_testing import StressTestingEngine, get_predefined_scenarios
+from app.engine.synthetic_data import (
     ALL_INSTITUTIONAL_ASSETS,
     DEFAULT_INSTITUTIONAL_ASSETS,
     INDIAN_INSTITUTIONAL_ASSETS,
     generate_deterministic_synthetic_returns,
 )
-from backend.app.schemas.api import (
+from app.schemas.api import (
     AssetItem,
     CustomScenarioInput,
     ScenarioSummaryItem,
@@ -24,7 +24,7 @@ from backend.app.schemas.api import (
     StressRunRequest,
     StressRunResponse,
 )
-from backend.app.schemas.portfolio import Asset, StressScenario
+from app.schemas.portfolio import Asset, StressScenario
 
 router = APIRouter(prefix="/stress", tags=["Stress Testing"])
 

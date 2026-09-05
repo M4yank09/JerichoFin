@@ -2,24 +2,24 @@
 from typing import Dict, List, Optional
 from fastapi import APIRouter, HTTPException, status
 
-from backend.app.api.v1.mappers import (
+from app.api.v1.mappers import (
     asset_item_to_domain,
     defensive_result_to_response,
     policy_eval_to_response,
     policy_input_to_domain,
 )
-from backend.app.engine.analytics import validate_weights
-from backend.app.engine.early_warning import EarlyWarningEngine
-from backend.app.engine.liquidity_outlook import LiquidityOutlookEngine
-from backend.app.engine.risk import TreasuryRiskEngine
-from backend.app.engine.risk_controller import RiskControlEngine
-from backend.app.engine.synthetic_data import (
+from app.engine.analytics import validate_weights
+from app.engine.early_warning import EarlyWarningEngine
+from app.engine.liquidity_outlook import LiquidityOutlookEngine
+from app.engine.risk import TreasuryRiskEngine
+from app.engine.risk_controller import RiskControlEngine
+from app.engine.synthetic_data import (
     ALL_INSTITUTIONAL_ASSETS,
     DEFAULT_INSTITUTIONAL_ASSETS,
     INDIAN_INSTITUTIONAL_ASSETS,
     generate_deterministic_synthetic_returns,
 )
-from backend.app.schemas.api import (
+from app.schemas.api import (
     AssetItem,
     DefensiveRebalanceRequest,
     DefensiveRebalanceResponse,
@@ -34,7 +34,7 @@ from backend.app.schemas.api import (
     RiskEvaluationResponse,
     TimelinePointItem,
 )
-from backend.app.schemas.portfolio import Asset, PortfolioConfig
+from app.schemas.portfolio import Asset, PortfolioConfig
 
 router = APIRouter(prefix="/risk", tags=["Risk Controls"])
 

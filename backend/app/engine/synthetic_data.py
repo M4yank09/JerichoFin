@@ -12,7 +12,7 @@ from typing import List, Optional
 import numpy as np
 import pandas as pd
 
-from backend.app.schemas.portfolio import Asset, AssetClass, LiquidityTier
+from app.schemas.portfolio import Asset, AssetClass, LiquidityTier
 
 # Prominently exported banner
 DATA_DISCLAIMER = "DEMO / SYNTHETIC DATA - NOT LIVE MARKET QUOTES"

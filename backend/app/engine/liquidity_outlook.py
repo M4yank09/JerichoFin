@@ -15,7 +15,7 @@ from enum import Enum
 from typing import Dict, List, Optional
 import numpy as np
 
-from backend.app.schemas.portfolio import (
+from app.schemas.portfolio import (
     Asset,
     PortfolioConfig,
     PortfolioMetrics,

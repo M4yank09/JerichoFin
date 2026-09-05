@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional, Union
 import numpy as np
 import pandas as pd
 
-from backend.app.engine.analytics import (
+from app.engine.analytics import (
     calculate_covariance_matrix,
     calculate_expected_return,
     calculate_hhi,
@@ -22,7 +22,7 @@ from backend.app.engine.analytics import (
     calculate_weighted_liquidity_score,
     validate_weights,
 )
-from backend.app.schemas.portfolio import PortfolioConfig, PortfolioMetrics
+from app.schemas.portfolio import PortfolioConfig, PortfolioMetrics
 
 
 class TreasuryRiskEngine:

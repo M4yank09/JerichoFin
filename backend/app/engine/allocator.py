@@ -5,8 +5,8 @@ portfolio rebalancing, and asset-liability matching (ALM).
 """
 from typing import Any, Dict, List, Optional
 
-from backend.app.engine.analytics import calculate_monetary_allocations, validate_weights
-from backend.app.schemas.portfolio import PortfolioConfig
+from app.engine.analytics import calculate_monetary_allocations, validate_weights
+from app.schemas.portfolio import PortfolioConfig
 
 
 class CapitalAllocationEngine:

@@ -4,8 +4,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from backend.app.api.v1 import api_router
-from backend.app.core.config import settings
+from app.api.v1 import api_router
+from app.core.config import settings
 
 
 def create_app() -> FastAPI:
@@ -107,4 +107,4 @@ app = create_app()
 if __name__ == "__main__":
     import uvicorn
     print(f"Starting {settings.PROJECT_NAME} on http://127.0.0.1:8000 ...")
-    uvicorn.run("backend.app.main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)

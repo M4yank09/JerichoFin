@@ -10,9 +10,9 @@ from typing import Dict, List, Optional
 import numpy as np
 import pandas as pd
 
-from backend.app.engine.analytics import validate_weights
-from backend.app.engine.risk_controller import RiskControlEngine
-from backend.app.schemas.portfolio import (
+from app.engine.analytics import validate_weights
+from app.engine.risk_controller import RiskControlEngine
+from app.schemas.portfolio import (
     Asset,
     AssetClass,
     AssetStressImpact,

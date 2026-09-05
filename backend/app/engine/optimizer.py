@@ -26,7 +26,7 @@ import cvxpy as cp
 import numpy as np
 import pandas as pd
 
-from backend.app.engine.analytics import (
+from app.engine.analytics import (
     calculate_covariance_matrix,
     calculate_expected_return,
     calculate_hhi,
@@ -39,7 +39,7 @@ from backend.app.engine.analytics import (
     calculate_portfolio_volatility,
     calculate_weighted_liquidity_score,
 )
-from backend.app.schemas.portfolio import (
+from app.schemas.portfolio import (
     Asset,
     AssetClass,
     ConstraintCheck,

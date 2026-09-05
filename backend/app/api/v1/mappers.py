@@ -1,7 +1,7 @@
 """Mappers and converters between domain dataclasses and API Pydantic schemas."""
 from typing import List, Optional
 
-from backend.app.schemas.api import (
+from app.schemas.api import (
     AssetDriftItem,
     AssetItem,
     AssetStressImpactItem,
@@ -12,7 +12,7 @@ from backend.app.schemas.api import (
     StressRunResponse,
     TreasuryPolicyInput,
 )
-from backend.app.schemas.portfolio import (
+from app.schemas.portfolio import (
     Asset,
     DefensiveRebalanceResult,
     OptimizationConstraints,

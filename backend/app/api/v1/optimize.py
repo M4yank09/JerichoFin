@@ -2,21 +2,21 @@
 from typing import List
 from fastapi import APIRouter, HTTPException, status
 
-from backend.app.api.v1.mappers import (
+from app.api.v1.mappers import (
     asset_item_to_domain,
     constraints_input_to_domain,
 )
-from backend.app.engine.optimizer import PortfolioOptimizer
-from backend.app.engine.synthetic_data import (
+from app.engine.optimizer import PortfolioOptimizer
+from app.engine.synthetic_data import (
     DEFAULT_INSTITUTIONAL_ASSETS,
     generate_deterministic_synthetic_returns,
 )
-from backend.app.schemas.api import (
+from app.schemas.api import (
     ConstraintCheckItem,
     OptimizationRequest,
     OptimizationResponse,
 )
-from backend.app.schemas.portfolio import Asset
+from app.schemas.portfolio import Asset
 
 router = APIRouter(prefix="/optimize", tags=["Optimization"])
 
@@ -42,7 +42,7 @@ def optimize_portfolio(request: OptimizationRequest) -> OptimizationResponse:
     if request.custom_assets:
         assets: List[Asset] = [asset_item_to_domain(a) for a in request.custom_assets]
     elif getattr(request, "universe", None) == "indian":
-        from backend.app.engine.synthetic_data import INDIAN_INSTITUTIONAL_ASSETS
+        from app.engine.synthetic_data import INDIAN_INSTITUTIONAL_ASSETS
         assets = INDIAN_INSTITUTIONAL_ASSETS
     else:
         assets = DEFAULT_INSTITUTIONAL_ASSETS

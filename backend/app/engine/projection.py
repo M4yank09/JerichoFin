@@ -11,8 +11,8 @@ from typing import Dict, List, Optional
 import numpy as np
 import pandas as pd
 
-from backend.app.engine.analytics import calculate_portfolio_return_series
-from backend.app.schemas.portfolio import PortfolioConfig, PortfolioMetrics
+from app.engine.analytics import calculate_portfolio_return_series
+from app.schemas.portfolio import PortfolioConfig, PortfolioMetrics
 
 
 @dataclass
